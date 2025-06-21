@@ -1,0 +1,64 @@
+# .github/workflows/vix_pages.yml
+name: Deploy VIX Dashboard to GitHub Pages
+
+on:
+  # 自動デプロイ：main ブランチへの push
+  push:
+    branches: ["main"]
+  # 手動実行
+  workflow_dispatch:
+
+permissions:
+  contents: read      # リポジトリ読み取り権限
+  pages: write        # GitHub Pages デプロイ権限
+  id-token: write     # OIDC トークン取得権限
+
+# 重複実行を制御 (同一グループの前回ジョブが完了するまでキャンセルしない)
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # GitHub Pages の公開環境設定
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. レポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Python 環境をセットアップ
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3. 依存関係をインストール
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_github.txt
+
+      # 4. ダッシュボード生成
+      - name: Generate VIX Dashboard
+        run: |
+          python github_automated_vix_analyzer.py
+
+      # 5. GitHub Pages 設定
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # 6. docs/ フォルダのみを Pages 用アーティファクトとしてアップロード
+      - name: Upload dashboard artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      # 7. Pages にデプロイ
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
