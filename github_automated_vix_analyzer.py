@@ -181,29 +181,30 @@ class GitHubVIXAnalyzer:
         fig = make_subplots(
             rows=3, cols=2,
             subplot_titles=[
-                'VIX & Market Overview',
+                'VIX Fear Index Overview',
                 'Risk Score Dashboard',
                 'VIX vs Realized Volatility',
                 'Nikkei vs SP500 Relative Strength',
                 'Signal History',
                 'Current Risk Assessment'
             ],
-            specs=[[{"secondary_y": True}, {"secondary_y": False}],
+            specs=[[{"secondary_y": False}, {"secondary_y": False}],
                    [{"secondary_y": False}, {"secondary_y": False}],
                    [{"secondary_y": False}, {"secondary_y": False}]]
         )
         
-        # 1. VIX & Market
+        # 1. VIX Overview
         fig.add_trace(
             go.Scatter(x=self.data.index, y=self.data['VIX'],
-                      name='VIX恐怖指数', line=dict(color='red')),
+                      name='VIX恐怖指数', line=dict(color='red', width=3)),
             row=1, col=1
         )
-        fig.add_trace(
-            go.Scatter(x=self.data.index, y=self.data['Nikkei'],
-                      name='日経平均', line=dict(color='blue'), yaxis='y2'),
-            row=1, col=1
-        )
+        
+        # VIX レベル参考線を追加
+        fig.add_hline(y=20, line_dash="dash", line_color="orange", 
+                     annotation_text="警戒水準(20)", row=1, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="red", 
+                     annotation_text="高警戒水準(30)", row=1, col=1)
         
         # 2. Risk Score (Bar Chart代替)
         latest = self.data.iloc[-1]
