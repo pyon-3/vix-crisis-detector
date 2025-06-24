@@ -105,6 +105,17 @@ jobs:
           
           Risk Score: ${{ steps.check_alert.outputs.risk_score }}/100
           Risk Level: ${{ steps.check_alert.outputs.risk_level }}
+
+          on:
+-  push:
+-    branches: ["main"]
+  schedule:
+    - cron: '0 0 * * 1-5'   # 平日JST9:00
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
           
           Dashboard: https://yourusername.github.io/vix-analysis
           
